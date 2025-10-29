@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import time
 from mpi4py import MPI
+import math
 import csv
 import fcntl
 import torch
@@ -10,6 +11,29 @@ import torch.nn as nn
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 count = comm.Get_size()
+
+# COLORS = [
+#     "\033[91m",  # Red
+#     "\033[92m",  # Green
+#     "\033[93m",  # Yellow
+#     "\033[94m",  # Blue
+#     "\033[95m",  # Magenta
+#     "\033[96m",  # Cyan
+#     "\033[90m",  # Gray
+#     "\033[97m",  # White
+# ]
+
+COLORS = [
+    "\033[0m",  # Default (Rank 0)
+    "\033[90m",  # Gray
+    "\033[90m",  # Gray
+    "\033[90m",  # Gray
+]
+RESET = "\033[0m"
+
+color = COLORS[rank % len(COLORS)]
+
+log_prefix = f"[Rank {rank:02d}]"
 
 PATH = "Data/"
 EPOCH = 2
@@ -55,6 +79,7 @@ def read_data():
 def load_data():
     data = None
     if rank == 0:
+        print(f"{color}{log_prefix} | Init  | Coordinator node. Reading and scattering data...{RESET}")
         data = read_data()
         data = [(np.zeros((1,1)), np.zeros(1))] + data
     data = comm.scatter(data, root=0)
@@ -69,7 +94,11 @@ def load_data():
 
         y_train = y_train.view(y_train.shape[0], 1)
         y_test = y_test.view(y_test.shape[0], 1)
-    print(f"rank {rank}, data: {X.shape}, {y.shape}")
+    
+    if rank == 0:
+        print(f"{color}{log_prefix} | Init  | Data scatter complete.{RESET}")
+    else:
+        print(f"{color}{log_prefix} | Init  | Data loaded. Train: {X_train.shape[0]}, Test: {X_test.shape[0]}{RESET}")
 
 def train():
     global model
@@ -80,7 +109,8 @@ def train():
         optimizer.step()
         optimizer.zero_grad()
 
-        # print(f'Rank {rank} Epoch: {epoch+1}, Loss: {loss.item():.4f}')
+        if (epoch + 1) % EPOCH == 0 or (epoch + 1) % 5 == 0:
+             print(f'{color}{log_prefix} | Train | Epoch: {epoch+1}/{EPOCH}, Loss: {loss.item():.4f}{RESET}')
 
 def test():
     global model
@@ -90,11 +120,13 @@ def test():
             y_predicted = model(X_test)
             y_predicted_cls = y_predicted.round()
             acc = y_predicted_cls.eq(y_test).sum() / float(y_test.shape[0])
-        print(f'rank {rank}, acc {acc:.4f}')
+        print(f'{color}{log_prefix} | Test  | Local Accuracy: {acc:.4f}{RESET}')
+        
     acc = comm.reduce(acc, MPI.SUM, root=0)
+    
     if rank == 0:
-        acc /= (count - 1)
-        print(f'rank {rank}, acc {acc:.4f}')
+        global_acc = acc / (count - 1)
+        print(f'{color}{log_prefix} | Test  | === Global Avg Accuracy: {global_acc:.4f} ==={RESET}')
 
 def get_avg_weights(weights_all):
     avg_weights = model.state_dict()
@@ -103,13 +135,13 @@ def get_avg_weights(weights_all):
         stacked_tensors = torch.stack(all_tensors)
         avg_weights[i] = torch.mean(stacked_tensors, dim=0)
     
-    print(f'AVG rank {rank}, weight {avg_weights['linear.weight'][0][:3]}, {avg_weights['linear.bias']}')
+    print(f'{color}{log_prefix} | Agg   | global weights, bias: {avg_weights['linear.weight'][0][:3]}, {avg_weights["linear.bias"].item()}{RESET}')
     return avg_weights
 
 def send_weight():
     global model, weights
     weights = model.state_dict()
-    print(f'pre rank {rank}, weight {weights['linear.weight'][0][:3]}, {weights['linear.bias']}')
+    print(f'{color}{log_prefix} | Sync  | Sending weights. Local weights, bias: {weights['linear.weight'][0][:3]}, {weights["linear.bias"].item()}{RESET}')
     
     all_weights = comm.gather(weights, root=0)
     
@@ -123,12 +155,18 @@ def receive_weight():
     if rank == 0:
         return
     
-    model.load_state_dict(weights)       
+    model.load_state_dict(weights)
+    print(f'{color}{log_prefix} | Sync  | Received new global weights.{RESET}')
+    
     
 def main():
     global weights
+    if rank == 0:
+        print(f"\n{color}{log_prefix} | Main  | Starting Federated Learning with {count} processes.{RESET}")
+        
     load_data()
-    for i in range(ROUND):
+    
+    for _ in range(ROUND):
         if rank != 0:
             train()
         all_weights = send_weight()
@@ -136,7 +174,7 @@ def main():
             weights = get_avg_weights(all_weights)
         receive_weight()
         test()
-  
+
 def store_time(exec_time, filename):
     with open(filename, 'a') as csvfile:
         fcntl.flock(csvfile.fileno(), fcntl.LOCK_EX)
@@ -149,4 +187,7 @@ if __name__ == "__main__":
     main()
     etime = time.perf_counter()
     exec_time = etime - stime
+    if rank == 0:
+        print(f"\n{color}{log_prefix} | Done  | Total execution time: {exec_time:.2f} seconds.{RESET}")
+        
     store_time(exec_time, f"time_fed_{ROUND}_{EPOCH}.csv")
