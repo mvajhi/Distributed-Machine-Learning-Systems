@@ -64,12 +64,13 @@ for epoch in range(30):
     if (epoch+1) % 5 == 0:
         print(f'Epoch: {epoch+1}, Loss: {loss.item():.4f}')
 
-etime = time.perf_counter()
-exec_time = etime - stime
 
 with torch.no_grad():
     y_predicted = model(X_test)
     y_predicted_cls = y_predicted.round()
     acc = y_predicted_cls.eq(y_test).sum() / float(y_test.shape[0])
     print(f'accuracy = {acc:.4f}')
+
+etime = time.perf_counter()
+exec_time = etime - stime
 print('time', exec_time)
