@@ -7,6 +7,8 @@ import csv
 import fcntl
 import torch
 import torch.nn as nn
+import argparse
+
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -36,8 +38,8 @@ color = COLORS[rank % len(COLORS)]
 log_prefix = f"[Rank {rank:02d}]"
 
 PATH = "Data/"
-EPOCH = 2
-ROUND = 3
+EPOCH = 10
+ROUND = 1
 LR = 0.01
 SEED = 0
 
@@ -103,7 +105,7 @@ def load_data():
         print(f"{color}{log_prefix} | Init  | Data loaded. Train: {X_train.shape[0]}, Test: {X_test.shape[0]}{RESET}")
 
 def train():
-    global model, train_time
+    global model, train_time, EPOCH
     stime = time.perf_counter()
     
     for epoch in range(EPOCH):
@@ -113,8 +115,8 @@ def train():
         optimizer.step()
         optimizer.zero_grad()
 
-        if (epoch + 1) % EPOCH == 0 or (epoch + 1) % 5 == 0:
-             print(f'{color}{log_prefix} | Train | Epoch: {epoch+1}/{EPOCH}, Loss: {loss.item():.4f}{RESET}')
+        # if (epoch + 1) % EPOCH == 0 or (epoch + 1) % 5 == 0:
+        #      print(f'{color}{log_prefix} | Train | Epoch: {epoch+1}/{EPOCH}, Loss: {loss.item():.4f}{RESET}')
     
     etime = time.perf_counter()
     exec_time = etime - stime
@@ -181,7 +183,7 @@ def main():
         if rank == 0:
             weights = get_avg_weights(all_weights)
         receive_weight()
-        test()
+    test()
 
 def store_time(exec_time, filename):
     with open(filename, 'a') as csvfile:
@@ -190,7 +192,17 @@ def store_time(exec_time, filename):
         csvwriter.writerow([rank, exec_time])
         fcntl.flock(csvfile.fileno(), fcntl.LOCK_UN)
 
+def read_arg():
+    global ROUND, EPOCH
+    parser = argparse.ArgumentParser(description="Bench args")
+    parser.add_argument("--epoch", type=int, default=1)
+    parser.add_argument("--round", type=int, default=10)
+    args = parser.parse_args()
+    EPOCH = args.epoch
+    ROUND = args.round
+
 if __name__ == "__main__":
+    read_arg()
     stime = time.perf_counter()
     main()
     etime = time.perf_counter()
