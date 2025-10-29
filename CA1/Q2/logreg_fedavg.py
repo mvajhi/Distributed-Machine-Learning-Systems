@@ -49,6 +49,8 @@ X_train, X_test, y_train, y_test = [None]*4
 
 n_features = 50
 
+train_time = 0
+
 class LogisticRegression(nn.Module):
     def __init__(self, n_input_features):
         super(LogisticRegression, self).__init__()
@@ -101,7 +103,9 @@ def load_data():
         print(f"{color}{log_prefix} | Init  | Data loaded. Train: {X_train.shape[0]}, Test: {X_test.shape[0]}{RESET}")
 
 def train():
-    global model
+    global model, train_time
+    stime = time.perf_counter()
+    
     for epoch in range(EPOCH):
         outputs = model(X_train)
         loss = criterion(outputs, y_train)
@@ -111,6 +115,10 @@ def train():
 
         if (epoch + 1) % EPOCH == 0 or (epoch + 1) % 5 == 0:
              print(f'{color}{log_prefix} | Train | Epoch: {epoch+1}/{EPOCH}, Loss: {loss.item():.4f}{RESET}')
+    
+    etime = time.perf_counter()
+    exec_time = etime - stime
+    train_time += exec_time
 
 def test():
     global model
@@ -162,7 +170,7 @@ def receive_weight():
 def main():
     global weights
     if rank == 0:
-        print(f"\n{color}{log_prefix} | Main  | Starting Federated Learning with {count} processes.{RESET}")
+        print(f"{color}{log_prefix} | Main  | Starting Federated Learning with {count} processes.{RESET}")
         
     load_data()
     
@@ -187,7 +195,7 @@ if __name__ == "__main__":
     main()
     etime = time.perf_counter()
     exec_time = etime - stime
-    if rank == 0:
-        print(f"\n{color}{log_prefix} | Done  | Total execution time: {exec_time:.2f} seconds.{RESET}")
-        
-    store_time(exec_time, f"time_fed_{ROUND}_{EPOCH}.csv")
+    print(f"{color}{log_prefix} | Done  | Training time: {train_time:.2f} seconds.{RESET}")
+    print(f"{color}{log_prefix} | Done  | Total execution time: {exec_time:.2f} seconds.{RESET}")
+    store_time(exec_time, f"time_exec_fed_{ROUND}_{EPOCH}.csv")
+    store_time(train_time, f"time_train_fed_{ROUND}_{EPOCH}.csv")
