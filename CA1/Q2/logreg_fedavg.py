@@ -1,11 +1,11 @@
-from sklearn.linear_model import SGDClassifier
 import numpy as np
 from sklearn.model_selection import train_test_split
 import time
 from mpi4py import MPI
-import math
 import csv
 import fcntl
+import torch
+import torch.nn as nn
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -14,16 +14,35 @@ count = comm.Get_size()
 PATH = "Data/"
 EPOCH = 2
 ROUND = 3
+LR = 0.01
+SEED = 0
+
+np.random.seed(SEED)
+torch.manual_seed(SEED)
 
 X, y = None, None
 X_train, X_test, y_train, y_test = [None]*4
 
 n_features = 50
-n_classes = 1
-initial_coeffs = np.zeros((n_classes, n_features))
-initial_intercept = np.zeros((n_classes,))
 
-model = None
+class LogisticRegression(nn.Module):
+    def __init__(self, n_input_features):
+        super(LogisticRegression, self).__init__()
+        self.linear = nn.Linear(n_input_features, 1)
+        self.sigmoid = nn.Sigmoid()
+        
+        torch.nn.init.constant_(self.linear.weight, 0)
+        torch.nn.init.constant_(self.linear.bias, 0)
+
+    def forward(self, x):
+        x = self.linear(x)
+        x = self.sigmoid(x)
+        return x
+    
+model = LogisticRegression(n_features)
+criterion = nn.BCELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+weights = model.state_dict()
 
 def read_data():
     output = []
@@ -43,65 +62,80 @@ def load_data():
     if rank != 0:
         global X_train, X_test, y_train, y_test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        X_train = torch.from_numpy(X_train.astype(np.float32))
+        X_test = torch.from_numpy(X_test.astype(np.float32))
+        y_train = torch.from_numpy(y_train.astype(np.float32))
+        y_test = torch.from_numpy(y_test.astype(np.float32))
+
+        y_train = y_train.view(y_train.shape[0], 1)
+        y_test = y_test.view(y_test.shape[0], 1)
     print(f"rank {rank}, data: {X.shape}, {y.shape}")
 
 def train():
     global model
-    model = SGDClassifier(
-        loss='log_loss',
-        learning_rate='constant',
-        eta0=0.01,
-        max_iter=EPOCH,
-        random_state=0
-    ).fit(X_train, y_train, coef_init=initial_coeffs, intercept_init=initial_intercept)
+    for epoch in range(EPOCH):
+        outputs = model(X_train)
+        loss = criterion(outputs, y_train)
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
 
-def send_weight():
-    global initial_coeffs, initial_intercept
-    initial_coeffs = model.coef_ if model != None else np.zeros((n_classes, n_features))
-    initial_intercept = model.intercept_ if model != None else np.zeros((n_classes,))
-    print(f'pre rank {rank}, weight {initial_coeffs.sum():0.2f}, {initial_intercept.sum():0.2f}')
-    # print(f'post rank {rank}, weight {initial_coeffs.shape}, {initial_intercept.shape}')
-    initial_coeffs = comm.gather(initial_coeffs, root=0)
-    initial_intercept = comm.gather(initial_intercept, root=0)
-    if rank != 0 : 
-        return
-    initial_coeffs = sum(initial_coeffs) / (count-1)
-    initial_intercept = sum(initial_intercept) / (count-1)
-    # print(f'post rank {rank}, weight {initial_coeffs.shape}, {initial_intercept.shape}')
-    print(f'post rank {rank}, weight {initial_coeffs.sum():0.2f}, {initial_intercept.sum():0.2f}')
-    # print(f'post rank {rank}, weight {initial_coeffs}, {initial_intercept}')
-
-def resive_weight():
-    global initial_coeffs, initial_intercept, model
-    initial_coeffs = comm.bcast(initial_coeffs, root=0)
-    initial_intercept = comm.bcast(initial_intercept, root=0)
-    
-    if rank == 0:
-        return
-    
-    model.coef_ = initial_coeffs
-    model.intercept_ = initial_intercept
+        # print(f'Rank {rank} Epoch: {epoch+1}, Loss: {loss.item():.4f}')
 
 def test():
     global model
     acc = 0
     if rank != 0:
-        acc = model.score(X_test, y_test)
-        print(f'rank {rank}, acc {acc}')
+        with torch.no_grad():
+            y_predicted = model(X_test)
+            y_predicted_cls = y_predicted.round()
+            acc = y_predicted_cls.eq(y_test).sum() / float(y_test.shape[0])
+        print(f'rank {rank}, acc {acc:.4f}')
     acc = comm.reduce(acc, MPI.SUM, root=0)
     if rank == 0:
         acc /= (count - 1)
-        print(f'rank {rank}, acc {acc}')
-        
+        print(f'rank {rank}, acc {acc:.4f}')
+
+def get_avg_weights(weights_all):
+    avg_weights = model.state_dict()
+    for i in avg_weights.keys():
+        all_tensors = [w[i] for w in weights_all]
+        stacked_tensors = torch.stack(all_tensors)
+        avg_weights[i] = torch.mean(stacked_tensors, dim=0)
+    
+    print(f'AVG rank {rank}, weight {avg_weights['linear.weight'][0][:3]}, {avg_weights['linear.bias']}')
+    return avg_weights
+
+def send_weight():
+    global model, weights
+    weights = model.state_dict()
+    print(f'pre rank {rank}, weight {weights['linear.weight'][0][:3]}, {weights['linear.bias']}')
+    
+    all_weights = comm.gather(weights, root=0)
+    
+    if rank == 0:
+        return all_weights[1:]
+
+def receive_weight():
+    global model, weights
+    weights = comm.bcast(weights, root=0)
+    
+    if rank == 0:
+        return
+    
+    model.load_state_dict(weights)       
     
 def main():
+    global weights
     load_data()
     for i in range(ROUND):
         if rank != 0:
             train()
-        send_weight()
-        resive_weight()
-    test()
+        all_weights = send_weight()
+        if rank == 0:
+            weights = get_avg_weights(all_weights)
+        receive_weight()
+        test()
   
 def store_time(exec_time, filename):
     with open(filename, 'a') as csvfile:
