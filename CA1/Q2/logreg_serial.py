@@ -1,10 +1,14 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import SGDClassifier
 import numpy as np
 from sklearn.model_selection import train_test_split
 import time
+import torch
+import torch.nn as nn
 
 PATH = "Data/"
+SEED = 0
+
+np.random.seed(SEED)
+torch.manual_seed(SEED)
 
 X, y = None, None
 
@@ -18,22 +22,54 @@ for i in range(1,4):
         y = np.concatenate((y, l), axis=0)
         
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+X_train = torch.from_numpy(X_train.astype(np.float32))
+X_test = torch.from_numpy(X_test.astype(np.float32))
+y_train = torch.from_numpy(y_train.astype(np.float32))
+y_test = torch.from_numpy(y_test.astype(np.float32))
+
+y_train = y_train.view(y_train.shape[0], 1)
+y_test = y_test.view(y_test.shape[0], 1)
 
 n_features = X.shape[1]
-n_classes = 1
-initial_coeffs = np.zeros((n_classes, n_features))
-initial_intercept = np.zeros((n_classes,))
+
+class LogisticRegression(nn.Module):
+    def __init__(self, n_input_features):
+        super(LogisticRegression, self).__init__()
+        self.linear = nn.Linear(n_input_features, 1)
+        self.sigmoid = nn.Sigmoid()
+        
+        torch.nn.init.constant_(self.linear.weight, 0)
+        torch.nn.init.constant_(self.linear.bias, 0)
+
+    def forward(self, x):
+        x = self.linear(x)
+        x = self.sigmoid(x)
+        return x
+    
+model = LogisticRegression(n_features)
+
+criterion = nn.BCELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
 
 stime = time.perf_counter()
-model = SGDClassifier(
-        loss='log_loss',
-        learning_rate='constant',
-        eta0=0.01,
-        max_iter=30,
-        random_state=0
-    ).fit(X_train, y_train, coef_init=initial_coeffs, intercept_init=initial_intercept)
+
+for epoch in range(30):
+    outputs = model(X_train)
+    loss = criterion(outputs, y_train)
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+    if (epoch+1) % 5 == 0:
+        print(f'Epoch: {epoch+1}, Loss: {loss.item():.4f}')
+
 etime = time.perf_counter()
 exec_time = etime - stime
 
-print('acc',model.score(X_test, y_test))
+with torch.no_grad():
+    y_predicted = model(X_test)
+    y_predicted_cls = y_predicted.round()
+    acc = y_predicted_cls.eq(y_test).sum() / float(y_test.shape[0])
+    print(f'accuracy = {acc:.4f}')
 print('time', exec_time)
