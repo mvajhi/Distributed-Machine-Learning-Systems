@@ -1,0 +1,26 @@
+[90m[Rank 01] | Init  | Data loaded. Train: 26666, Test: 6667[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([1.0020e-04, 2.3030e-04, 9.4423e-05]), -0.042081188410520554[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Test  | Local Accuracy: 0.6004[0m
+[90m[Rank 01] | Done  | Training time: 0.10 seconds.[0m
+[90m[Rank 01] | Done  | Total execution time: 14.77 seconds.[0m
+[0m[Rank 00] | Main  | Starting Federated Learning with 4 processes.[0m
+[0m[Rank 00] | Init  | Coordinator node. Reading and scattering data...[0m
+[0m[Rank 00] | Init  | Data scatter complete.[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([5.1335e-05, 1.4464e-04, 1.4967e-04]), -0.0004948175046592951[0m
+[0m[Rank 00] | Test  | === Global Avg Accuracy: 0.6277 ===[0m
+[0m[Rank 00] | Done  | Training time: 0.00 seconds.[0m
+[0m[Rank 00] | Done  | Total execution time: 15.22 seconds.[0m
+[90m[Rank 03] | Init  | Data loaded. Train: 26668, Test: 6667[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([-0.0002, -0.0003,  0.0006]), -0.0005010614986531436[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Test  | Local Accuracy: 0.6285[0m
+[90m[Rank 03] | Done  | Training time: 0.23 seconds.[0m
+[90m[Rank 03] | Done  | Total execution time: 7.47 seconds.[0m
+[90m[Rank 02] | Init  | Data loaded. Train: 26665, Test: 6667[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([ 0.0002,  0.0005, -0.0002]), 0.04109779745340347[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Test  | Local Accuracy: 0.6543[0m
+[90m[Rank 02] | Done  | Training time: 0.88 seconds.[0m
+[90m[Rank 02] | Done  | Total execution time: 7.22 seconds.[0m

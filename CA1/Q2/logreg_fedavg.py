@@ -42,6 +42,7 @@ EPOCH = 10
 ROUND = 1
 LR = 0.01
 SEED = 0
+malicious = False
 
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -139,6 +140,7 @@ def test():
         print(f'{color}{log_prefix} | Test  | === Global Avg Accuracy: {global_acc:.4f} ==={RESET}')
 
 def get_avg_weights(weights_all):
+    global weights
     avg_weights = model.state_dict()
     for i in avg_weights.keys():
         all_tensors = [w[i] for w in weights_all]
@@ -146,17 +148,17 @@ def get_avg_weights(weights_all):
         avg_weights[i] = torch.mean(stacked_tensors, dim=0)
     
     print(f'{color}{log_prefix} | Agg   | global weights, bias: {avg_weights['linear.weight'][0][:3]}, {avg_weights["linear.bias"].item()}{RESET}')
-    return avg_weights
+    weights = avg_weights
 
 def send_weight():
     global model, weights
     weights = model.state_dict()
     print(f'{color}{log_prefix} | Sync  | Sending weights. Local weights, bias: {weights['linear.weight'][0][:3]}, {weights["linear.bias"].item()}{RESET}')
     
-    all_weights = comm.gather(weights, root=0)
+    weights = comm.gather(weights, root=0)
     
     if rank == 0:
-        return all_weights[1:]
+        weights = weights[1:]
 
 def receive_weight():
     global model, weights
@@ -179,9 +181,9 @@ def main():
     for _ in range(ROUND):
         if rank != 0:
             train()
-        all_weights = send_weight()
+        send_weight()
         if rank == 0:
-            weights = get_avg_weights(all_weights)
+            get_avg_weights(weights)
         receive_weight()
     test()
 
@@ -192,14 +194,26 @@ def store_time(exec_time, filename):
         csvwriter.writerow([rank, exec_time])
         fcntl.flock(csvfile.fileno(), fcntl.LOCK_UN)
 
+def set_malicious():
+    global LR, optimizer, malicious
+    if rank == 1:
+        print(f"{color}{log_prefix} | BadBoy| Change LR to 0.5.{RESET}")
+        LR = 0.5
+        optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+    malicious = True
+
 def read_arg():
     global ROUND, EPOCH
     parser = argparse.ArgumentParser(description="Bench args")
     parser.add_argument("--epoch", type=int, default=1)
-    parser.add_argument("--round", type=int, default=10)
+    parser.add_argument("--round", type=int, default=1)
+    parser.add_argument("--malicious", action="store_true")
     args = parser.parse_args()
     EPOCH = args.epoch
     ROUND = args.round
+    malicious = args.malicious
+    if args.malicious:
+        set_malicious()
 
 if __name__ == "__main__":
     read_arg()
@@ -209,5 +223,6 @@ if __name__ == "__main__":
     exec_time = etime - stime
     print(f"{color}{log_prefix} | Done  | Training time: {train_time:.2f} seconds.{RESET}")
     print(f"{color}{log_prefix} | Done  | Total execution time: {exec_time:.2f} seconds.{RESET}")
-    store_time(exec_time, f"time_exec_fed_{ROUND}_{EPOCH}.csv")
-    store_time(train_time, f"time_train_fed_{ROUND}_{EPOCH}.csv")
+    malicious_text = '_malicious' if malicious else ''
+    store_time(exec_time, f"time_exec_fed_{ROUND}_{EPOCH}{malicious_text}.csv")
+    store_time(train_time, f"time_train_fed_{ROUND}_{EPOCH}{malicious_text}.csv")

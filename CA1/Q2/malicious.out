@@ -1,0 +1,99 @@
+[0m[Rank 00] | Main  | Starting Federated Learning with 4 processes.[0m
+[0m[Rank 00] | Init  | Coordinator node. Reading and scattering data...[0m
+[0m[Rank 00] | Init  | Data scatter complete.[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0002, 0.0003, 0.0002]), -0.0735410824418068[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0003, 0.0012, 0.0003]), -0.12949138879776[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0004, 0.0008, 0.0008]), -0.19805856049060822[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0005, 0.0020, 0.0008]), -0.2534647583961487[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0006, 0.0020, 0.0009]), -0.3041686713695526[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0007, 0.0031, 0.0008]), -0.3530406653881073[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0009, 0.0026, 0.0011]), -0.4098609685897827[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0009, 0.0037, 0.0011]), -0.4583016633987427[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0011, 0.0036, 0.0011]), -0.5026629567146301[0m
+[0m[Rank 00] | Sync  | Sending weights. Local weights, bias: tensor([0., 0., 0.]), 0.0[0m
+[0m[Rank 00] | Agg   | global weights, bias: tensor([0.0012, 0.0044, 0.0010]), -0.5457656383514404[0m
+[0m[Rank 00] | Test  | === Global Avg Accuracy: 0.5762 ===[0m
+[0m[Rank 00] | Done  | Training time: 0.00 seconds.[0m
+[0m[Rank 00] | Done  | Total execution time: 17.39 seconds.[0m
+[90m[Rank 01] | BadBoy| Change LR to 0.5.[0m
+[90m[Rank 01] | Init  | Data loaded. Train: 26666, Test: 6667[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0005, 0.0008, 0.0007]), -0.2250993400812149[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0005, 0.0029, 0.0005]), -0.24666646122932434[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([5.7311e-04, 7.8331e-05, 1.6786e-03]), -0.33993151783943176[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0007, 0.0044, 0.0008]), -0.36953485012054443[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0009, 0.0021, 0.0011]), -0.4111386835575104[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0010, 0.0051, 0.0007]), -0.4564976096153259[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0012, 0.0017, 0.0016]), -0.5288002490997314[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0010, 0.0058, 0.0010]), -0.5609782338142395[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0016, 0.0033, 0.0012]), -0.5974201560020447[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Sync  | Sending weights. Local weights, bias: tensor([0.0011, 0.0062, 0.0007]), -0.6382215023040771[0m
+[90m[Rank 01] | Sync  | Received new global weights.[0m
+[90m[Rank 01] | Test  | Local Accuracy: 0.6957[0m
+[90m[Rank 01] | Done  | Training time: 0.10 seconds.[0m
+[90m[Rank 01] | Done  | Total execution time: 18.03 seconds.[0m
+[90m[Rank 03] | Init  | Data loaded. Train: 26668, Test: 6667[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([-1.8863e-05, -2.5919e-05,  5.6988e-05]), -2.6998659450327978e-05[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0002, 0.0002, 0.0003]), -0.07294017821550369[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0003, 0.0011, 0.0004]), -0.1293424367904663[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0004, 0.0008, 0.0009]), -0.19746033847332[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0005, 0.0020, 0.0009]), -0.2526732385158539[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0006, 0.0020, 0.0010]), -0.3033028841018677[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0007, 0.0030, 0.0009]), -0.3524636924266815[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0009, 0.0026, 0.0012]), -0.40896257758140564[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0009, 0.0036, 0.0011]), -0.45723098516464233[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Sync  | Sending weights. Local weights, bias: tensor([0.0012, 0.0035, 0.0012]), -0.5015069246292114[0m
+[90m[Rank 03] | Sync  | Received new global weights.[0m
+[90m[Rank 03] | Test  | Local Accuracy: 0.5667[0m
+[90m[Rank 03] | Done  | Training time: 0.29 seconds.[0m
+[90m[Rank 03] | Done  | Total execution time: 9.07 seconds.[0m
+[90m[Rank 02] | Init  | Data loaded. Train: 26665, Test: 6667[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([ 2.6492e-05,  5.3187e-05, -3.3373e-05]), 0.004503094591200352[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0002, 0.0004, 0.0002]), -0.068867526948452[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0003, 0.0012, 0.0003]), -0.12490173429250717[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0004, 0.0009, 0.0007]), -0.1933990865945816[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0005, 0.0020, 0.0008]), -0.24869409203529358[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0006, 0.0021, 0.0009]), -0.2993214726448059[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0008, 0.0031, 0.0008]), -0.34831899404525757[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0009, 0.0027, 0.0010]), -0.4049642086029053[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0010, 0.0037, 0.0010]), -0.453337699174881[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Sync  | Sending weights. Local weights, bias: tensor([0.0012, 0.0036, 0.0011]), -0.4975685179233551[0m
+[90m[Rank 02] | Sync  | Received new global weights.[0m
+[90m[Rank 02] | Test  | Local Accuracy: 0.4662[0m
+[90m[Rank 02] | Done  | Training time: 0.57 seconds.[0m
+[90m[Rank 02] | Done  | Total execution time: 9.42 seconds.[0m
